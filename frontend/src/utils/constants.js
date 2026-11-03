@@ -1,6 +1,7 @@
 // export const SOCKET_ENDPOINT = "http://localhost:4000";
-export const SOCKET_ENDPOINT = "https://instagrammern.herokuapp.com";
-
+export const SOCKET_ENDPOINT =
+    process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:4000';
+    
 export const stories = [
     {
         title: "JavaScript",
