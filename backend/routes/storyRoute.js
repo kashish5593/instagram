@@ -1,11 +1,12 @@
 const express = require('express');
 const { newStory, getStories, viewStory, getStoryViewers, deleteStory } = require('../controllers/storyController');
 const { isAuthenticated } = require('../middlewares/auth');
-const { uploadStory } = require('../utils/awsFunctions');
+// stories reuse the post upload config so they land in the same (already public) S3 folder
+const { uploadPost } = require('../utils/awsFunctions');
 
 const router = express();
 
-router.route("/story/new").post(isAuthenticated, uploadStory.single('story'), newStory);
+router.route("/story/new").post(isAuthenticated, uploadPost.single('story'), newStory);
 
 router.route("/stories").get(isAuthenticated, getStories);
 

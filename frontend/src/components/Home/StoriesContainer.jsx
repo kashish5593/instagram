@@ -100,7 +100,8 @@ const StoriesContainer = () => {
         ]
     };
 
-    const ring = (viewed) => viewed ? "border-gray-300" : "border-red-500";
+    // Instagram-style ring: gradient while unseen, grey once seen
+    const ringBg = (viewed) => viewed ? "bg-gray-300" : "bg-gradient-to-tr from-yellow-400 via-red-500 to-fuchsia-600";
 
     return (
         <>
@@ -113,10 +114,10 @@ const StoriesContainer = () => {
                     <div className="relative">
                         <button
                             onClick={() => myGroup ? setViewerIndex(myIndex) : fileInput.current.click()}
-                            className={`w-16 h-16 p-[1px] rounded-full border-2 ${myGroup ? ring(myGroup.allViewed) : 'border-transparent'}`}
+                            className={`w-16 h-16 rounded-full ${myGroup ? `p-[2px] ${ringBg(myGroup.allViewed)}` : 'p-[2px] bg-transparent'}`}
                             aria-label="Your story"
                         >
-                            <img loading="lazy" className="rounded-full h-full w-full border border-gray-300 object-cover" src={user.avatar} draggable="false" alt="your story" />
+                            <img loading="lazy" className="rounded-full h-full w-full border-2 border-white object-cover" src={user.avatar} draggable="false" alt="your story" />
                         </button>
                         <button
                             onClick={() => fileInput.current.click()}
@@ -133,8 +134,8 @@ const StoriesContainer = () => {
                 {/* stories of the people you follow */}
                 {groups.map((g, i) => ({ g, i })).filter(({ g }) => g.user._id !== user._id).map(({ g, i }) => (
                     <div onClick={() => setViewerIndex(i)} className="flex flex-col text-center justify-center items-center p-2 cursor-pointer" key={g.user._id}>
-                        <div className={`w-16 p-[1px] h-16 rounded-full border-2 ${ring(g.allViewed)}`}>
-                            <img loading="lazy" className="rounded-full h-full w-full border border-gray-300 object-cover" src={g.user.avatar} draggable="false" alt="story" />
+                        <div className={`w-16 h-16 p-[2px] rounded-full ${ringBg(g.allViewed)}`}>
+                            <img loading="lazy" className="rounded-full h-full w-full border-2 border-white object-cover" src={g.user.avatar} draggable="false" alt="story" />
                         </div>
                         <span className="text-xs max-w-[4rem] truncate">{g.user.username}</span>
                     </div>

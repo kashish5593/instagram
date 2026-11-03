@@ -21,6 +21,7 @@ const StoryViewer = ({ groups, startGroup, onClose, onViewed, onDeleted }) => {
     const [progress, setProgress] = useState(0);
     const [paused, setPaused] = useState(false);
     const [loadedId, setLoadedId] = useState(null);
+    const [failedId, setFailedId] = useState(null);
     const [viewersOpen, setViewersOpen] = useState(false);
     const [viewers, setViewers] = useState([]);
     const [deleting, setDeleting] = useState(false);
@@ -172,9 +173,16 @@ const StoryViewer = ({ groups, startGroup, onClose, onViewed, onDeleted }) => {
                     src={story.image}
                     alt="story"
                     onLoad={() => setLoadedId(story._id)}
-                    onError={() => setLoadedId(story._id)}
-                    className="w-full h-full object-contain"
+                    onError={() => { setFailedId(story._id); setLoadedId(story._id); }}
+                    className={`w-full h-full object-contain ${failedId === story._id ? 'invisible' : ''}`}
                 />
+
+                {failedId === story._id &&
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-white text-sm px-8 text-center">
+                        <span>This story's image couldn't be loaded.</span>
+                        <span className="text-white/60 text-xs">Check that your storage bucket allows public read access for uploaded images.</span>
+                    </div>
+                }
 
                 {!loaded &&
                     <div className="absolute inset-0 flex items-center justify-center text-white text-sm">Loading...</div>
