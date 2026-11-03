@@ -12,7 +12,6 @@ const s3Config = new aws.S3({
 const avatarS3Config = multerS3({
     s3: s3Config,
     bucket: process.env.AWS_BUCKET_NAME,
-    acl: 'public-read',
     metadata: function (req, file, cb) {
         cb(null, { fieldName: file.fieldname });
     },
@@ -25,7 +24,6 @@ const avatarS3Config = multerS3({
 const postS3Config = multerS3({
     s3: s3Config,
     bucket: process.env.AWS_BUCKET_NAME,
-    acl: 'public-read',
     metadata: function (req, file, cb) {
         cb(null, { fieldName: file.fieldname });
     },
