@@ -10,11 +10,16 @@ import { addComment, clearErrors, deletePost, likePost, savePost } from '../../.
 import { Picker } from 'emoji-mart';
 import { metaballsMenu } from '../SvgIcons';
 import moment from 'moment';
+import axios from 'axios';
 
-const PostItem = ({ _id, caption, likes, comments, image, postedBy, savedBy, createdAt }) => {
+const PostItem = ({ _id, caption, likes: initialLikes, comments: initialComments, image, postedBy, savedBy: initialSavedBy, createdAt }) => {
 
     const dispatch = useDispatch();
     const commentInput = useRef(null);
+
+    const [likes, setLikes] = useState(initialLikes || []);
+    const [comments, setComments] = useState(initialComments || []);
+    const [savedBy, setSavedBy] = useState(initialSavedBy || []);
 
     const [open, setOpen] = useState(false);
     const [liked, setLiked] = useState(false);
@@ -27,26 +32,46 @@ const PostItem = ({ _id, caption, likes, comments, image, postedBy, savedBy, cre
 
     const { user } = useSelector((state) => state.user);
 
-    const handleLike = () => {
+    // pull the latest likes / comments / saves of this post
+    const refreshPost = async () => {
+        try {
+            const { data } = await axios.get(`/api/v1/post/detail/${_id}`);
+            setLikes(data.post.likes.map((u) => u._id || u));
+            setComments(data.post.comments);
+            setSavedBy(data.post.savedBy);
+        } catch (err) {
+            // keep showing the current data
+        }
+    }
+
+    const handleLike = async () => {
         setLiked(!liked);
-        dispatch(likePost(_id));
+        await dispatch(likePost(_id));
+        refreshPost();
     }
 
-    const handleComment = (e) => {
+    const handleComment = async (e) => {
         e.preventDefault();
-        dispatch(addComment(_id, comment));
+        await dispatch(addComment(_id, comment));
         setComment("");
+        refreshPost();
     }
 
-    const handleSave = () => {
+    const handleSave = async () => {
         setSaved(!saved);
-        dispatch(savePost(_id));
+        await dispatch(savePost(_id));
+        refreshPost();
     }
 
     const handleDeletePost = () => {
         dispatch(deletePost(_id));
         setDeleteModal(false)
     }
+
+    // keep in sync when the parent passes fresh data
+    useEffect(() => { setLikes(initialLikes || []) }, [initialLikes]);
+    useEffect(() => { setComments(initialComments || []) }, [initialComments]);
+    useEffect(() => { setSavedBy(initialSavedBy || []) }, [initialSavedBy]);
 
     useEffect(() => {
         setLiked(likes.some((id) => id === user._id))
@@ -123,8 +148,8 @@ const PostItem = ({ _id, caption, likes, comments, image, postedBy, savedBy, cre
 
                             {comments.map((c) => (
                                 <div className="flex items-start space-x-1 mb-3" key={c._id}>
-                                    <Link to={`/${c.user}`}><img draggable="false" className="w-9 h-9 rounded-full object-cover mr-2.5" src={c.user.avatar} alt="avatar" /></Link>
-                                    <Link to={`/${c.user}`} className="text-sm font-semibold hover:underline">{c.user.username}</Link>
+                                    <Link to={`/${c.user.username}`}><img draggable="false" className="w-9 h-9 rounded-full object-cover mr-2.5" src={c.user.avatar} alt="avatar" /></Link>
+                                    <Link to={`/${c.user.username}`} className="text-sm font-semibold hover:underline">{c.user.username}</Link>
                                     <p className="text-sm whitespace-pre-line">{c.comment}</p>
                                 </div>
                             ))}

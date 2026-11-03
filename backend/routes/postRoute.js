@@ -1,5 +1,5 @@
 const express = require('express');
-const { newPost, likeUnlikePost, deletePost, newComment, allPosts, getPostsOfFollowing, updateCaption, saveUnsavePost, getPostDetails } = require('../controllers/postController');
+const { newPost, likeUnlikePost, deletePost, newComment, allPosts, getPostsOfFollowing, updateCaption, saveUnsavePost, getPostDetails, explorePosts } = require('../controllers/postController');
 const { isAuthenticated } = require('../middlewares/auth');
 const { uploadPost } = require('../utils/awsFunctions');
 
@@ -10,6 +10,8 @@ router.route("/post/new").post(isAuthenticated, uploadPost.single('post'), newPo
 router.route("/posts/all").get(allPosts);
 
 router.route("/posts").get(isAuthenticated, getPostsOfFollowing);
+
+router.route("/posts/explore").get(isAuthenticated, explorePosts);
 
 router.route("/post/detail/:id").get(isAuthenticated, getPostDetails);
 

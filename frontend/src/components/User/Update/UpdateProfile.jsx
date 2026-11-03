@@ -60,11 +60,11 @@ const UpdateProfile = () => {
 
     useEffect(() => {
         if (user) {
-            setName(user.name);
-            setUsername(user.username);
-            setWebsite(user.website);
-            setBio(user.bio);
-            setEmail(user.email);
+            setName(user.name || "");
+            setUsername(user.username || "");
+            setWebsite(user.website || "");
+            setBio(user.bio || "");
+            setEmail(user.email || "");
             setOldAvatar(user.avatar);
         }
         if (error) {
@@ -135,7 +135,6 @@ const UpdateProfile = () => {
                         placeholder="Website"
                         value={website}
                         onChange={(e) => setWebsite(e.target.value)}
-                        required
                     />
                 </div>
                 <div className="flex w-full gap-8 text-right items-start">

@@ -60,6 +60,21 @@ const userSchema = new mongoose.Schema({
             ref: "User",
         }
     ],
+    notificationSettings: {
+        likes: { type: Boolean, default: true },
+        comments: { type: Boolean, default: true },
+        follows: { type: Boolean, default: true },
+    },
+    loginActivity: {
+        type: [
+            {
+                ip: String,
+                device: String,
+                date: { type: Date, default: Date.now },
+            }
+        ],
+        select: false,
+    },
     resetPasswordToken: String,
     resetPasswordExpiry: Date,
 });

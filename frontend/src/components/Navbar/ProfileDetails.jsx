@@ -22,19 +22,21 @@ const ProfileDetails = ({ setProfileToggle }) => {
         {
             title: "Saved",
             icon: savedIcon,
-            redirect: `/${user.username}`
+            redirect: `/${user.username}?tab=saved`
         },
         {
             title: "Settings",
             icon: settingsIcon,
             redirect: "/accounts/edit"
         },
-        {
-            title: "Switch Account",
-            icon: switchAccountIcon,
-            redirect: "/"
-        },
     ]
+
+    // only one account can be signed in at a time, so switching means signing out first
+    const handleSwitchAccount = () => {
+        dispatch(logoutUser());
+        navigate("/login");
+        toast.info("Sign in with another account");
+    }
 
     const handleLogout = () => {
         dispatch(logoutUser());
@@ -55,6 +57,10 @@ const ProfileDetails = ({ setProfileToggle }) => {
                             {el.title}
                         </Link>
                     ))}
+                    <button onClick={handleSwitchAccount} className="flex items-center gap-3 p-2.5 text-sm pl-4 cursor-pointer hover:bg-gray-50">
+                        {switchAccountIcon}
+                        Switch Account
+                    </button>
                     <button onClick={handleLogout} className="flex rounded-b border-t-2 items-center gap-3 p-2.5 text-sm pl-4 cursor-pointer hover:bg-gray-50">
                         Logout
                     </button>

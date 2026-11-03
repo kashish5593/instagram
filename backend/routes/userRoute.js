@@ -1,5 +1,5 @@
 const express = require('express');
-const { loginUser, signupUser, logoutUser, followUser, updateProfile, updatePassword, forgotPassword, resetPassword, getUserDetails, getAccountDetails, getAllUsers, searchUsers, getUserDetailsById, deleteProfile } = require('../controllers/userController');
+const { loginUser, signupUser, logoutUser, followUser, updateProfile, updatePassword, forgotPassword, resetPassword, getUserDetails, getAccountDetails, getAllUsers, searchUsers, getUserDetailsById, deleteProfile, getActivity, updateNotificationSettings, getLoginActivity } = require('../controllers/userController');
 const { isAuthenticated } = require('../middlewares/auth');
 const { uploadAvatar } = require('../utils/awsFunctions');
 
@@ -22,6 +22,10 @@ router.route("/users").get(isAuthenticated, searchUsers);
 router.route("/follow/:id").get(isAuthenticated, followUser);
 
 router.route("/update/profile").put(isAuthenticated, uploadAvatar.single('avatar'), updateProfile);
+router.route("/activity").get(isAuthenticated, getActivity);
+router.route("/update/notifications").put(isAuthenticated, updateNotificationSettings);
+router.route("/login/activity").get(isAuthenticated, getLoginActivity);
+
 router.route("/update/password").put(isAuthenticated, updatePassword);
 
 router.route('/password/forgot').post(forgotPassword);

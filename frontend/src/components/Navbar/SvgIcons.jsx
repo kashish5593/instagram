@@ -21,3 +21,6 @@ export const settingsIcon = <svg aria-label="Settings" color="#262626" fill="#26
 export const switchAccountIcon = <svg aria-label="Switch Accounts" color="#262626" fill="#262626" height="16" role="img" viewBox="0 0 24 24" width="16"><path d="M8 8.363a1 1 0 00-1-1H4.31a8.977 8.977 0 0114.054-1.727 1 1 0 101.414-1.414A11.003 11.003 0 003 5.672V3.363a1 1 0 10-2 0v5a1 1 0 001 1h5a1 1 0 001-1zm14 6.274h-5a1 1 0 000 2h2.69a8.977 8.977 0 01-14.054 1.727 1 1 0 00-1.414 1.414A11.004 11.004 0 0021 18.33v2.307a1 1 0 002 0v-5a1 1 0 00-1-1z"></path></svg>
 
 
+
+export const exploreFill = <svg aria-label="Find People" color="#262626" fill="#262626" height="24" role="img" viewBox="0 0 24 24" width="24"><path d="M12 .5C5.649.5.5 5.649.5 12S5.649 23.5 12 23.5 23.5 18.351 23.5 12 18.351.5 12 .5zm3.4 7.1-2.5 6.4a.9.9 0 0 1-.5.5l-6.4 2.5a.4.4 0 0 1-.5-.5l2.5-6.4a.9.9 0 0 1 .5-.5l6.4-2.5a.4.4 0 0 1 .5.5z" fillRule="evenodd"></path><circle cx="12" cy="12" r="1.2" fill="#fff"></circle></svg>
+

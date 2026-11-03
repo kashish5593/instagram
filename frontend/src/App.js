@@ -18,6 +18,8 @@ const Login = lazy(() => import('./components/User/Login'));
 const ForgotPassword = lazy(() => import('./components/User/ForgotPassword'));
 const ResetPassword = lazy(() => import('./components/User/ResetPassword'));
 const Update = lazy(() => import('./components/User/Update/Update'));
+const AccountSettings = lazy(() => import('./components/User/Update/AccountSettings'));
+const Explore = lazy(() => import('./components/Explore/Explore'));
 const Inbox = lazy(() => import('./components/Chats/Inbox'));
 const NotFound = lazy(() => import('./components/Errors/NotFound'));
 
@@ -91,6 +93,19 @@ function App() {
             </PrivateRoute>
           }
           />
+
+          <Route path="/accounts/:section" element={
+            <PrivateRoute>
+              <AccountSettings />
+            </PrivateRoute>
+          }
+          />
+
+          <Route path="/explore" element={
+            <PrivateRoute>
+              <Explore />
+            </PrivateRoute>
+          } />
 
           <Route path="/direct/inbox" element={
             <PrivateRoute>

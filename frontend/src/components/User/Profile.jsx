@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import PostContainer from './Posts/PostContainer';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { clearErrors, followUser, getUserDetails } from '../../actions/userAction';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Dialog } from '@mui/material';
+import { clearErrors, followUser, getUserDetails, logoutUser } from '../../actions/userAction';
 import { clearErrors as clearChatErrors, addNewChat } from '../../actions/chatAction';
 import { toast } from 'react-toastify';
 import BackdropLoader from '../Layouts/BackdropLoader';
@@ -23,7 +24,9 @@ const Profile = () => {
     const [viewModal, setViewModal] = useState(false);
     const [followersModal, setFollowersModal] = useState(false);
     const [usersArr, setUsersArr] = useState([]);
-    const [savedTab, setSavedTab] = useState(false);
+    const [searchParams] = useSearchParams();
+    const [savedTab, setSavedTab] = useState(searchParams.get('tab') === 'saved');
+    const [settingsModal, setSettingsModal] = useState(false);
 
     const { user, error, loading } = useSelector((state) => state.userDetails);
     const { user: loggedInUser } = useSelector((state) => state.user);
@@ -51,6 +54,18 @@ const Profile = () => {
         setViewModal(false)
     }
 
+    const handleLogout = () => {
+        setSettingsModal(false);
+        dispatch(logoutUser());
+        navigate("/login");
+        toast.success("Logout Successfully");
+    }
+
+    const goTo = (path) => {
+        setSettingsModal(false);
+        navigate(path);
+    }
+
     useEffect(() => {
         if (error) {
             toast.error(error);
@@ -72,6 +87,10 @@ const Profile = () => {
         // }
 
     }, [dispatch, error, params.username, followError, success, message]);
+
+    useEffect(() => {
+        setSavedTab(searchParams.get('tab') === 'saved');
+    }, [searchParams, params.username]);
 
     useEffect(() => {
         // console.log(user?.followers?.some((id) => id === loggedInUser._id))
@@ -117,7 +136,7 @@ const Profile = () => {
                                 {(loggedInUser.username === user.username) ? (
                                     <div className="flex gap-3 items-center">
                                         <Link to="/accounts/edit" className="border font-medium hover:bg-gray-50 text-sm rounded px-2 py-1">Edit Profile</Link>
-                                        <Link to="/accounts/edit">{settingsIcon}</Link>
+                                        <button onClick={() => setSettingsModal(true)} aria-label="Settings">{settingsIcon}</button>
                                     </div>
                                 ) : (
                                     <div className="flex gap-3 items-center">
@@ -152,6 +171,17 @@ const Profile = () => {
 
                     </div>
 
+                    <Dialog open={settingsModal} onClose={() => setSettingsModal(false)} maxWidth='xl'>
+                        <div className="flex flex-col items-center w-80 text-sm">
+                            <button onClick={() => goTo('/accounts/password/change')} className="border-b py-3 w-full hover:bg-gray-50">Change Password</button>
+                            <button onClick={() => goTo('/accounts/edit')} className="border-b py-3 w-full hover:bg-gray-50">Settings</button>
+                            <button onClick={() => goTo('/accounts/push')} className="border-b py-3 w-full hover:bg-gray-50">Notifications</button>
+                            <button onClick={() => { setSettingsModal(false); setSavedTab(true); }} className="border-b py-3 w-full hover:bg-gray-50">Saved</button>
+                            <button onClick={handleLogout} className="border-b py-3 w-full text-red-600 font-medium hover:bg-red-50">Log Out</button>
+                            <button onClick={() => setSettingsModal(false)} className="py-3 w-full hover:bg-gray-50">Cancel</button>
+                        </div>
+                    </Dialog>
+
                     {followersModal ?
                         <UsersDialog title="Followers" open={viewModal} onClose={closeModal} usersList={user?.followers} />
                         :
@@ -162,8 +192,8 @@ const Profile = () => {
 
                         {/* tabs */}
                         <div className="flex gap-12 justify-center">
-                            <span onClick={() => setSavedTab(false)} className={`${savedTab ? 'text-gray-400' : 'border-t border-black'} py-3 cursor-pointer flex items-center text-[13px] uppercase gap-3 tracking-[1px] font-medium`}>
-                                {savedTab ? postsIconOutline : postsIconFill} posts</span>
+                            <span onClick={() => setSavedTab(false)} className={`${savedTab && user._id === loggedInUser._id ? 'text-gray-400' : 'border-t border-black'} py-3 cursor-pointer flex items-center text-[13px] uppercase gap-3 tracking-[1px] font-medium`}>
+                                {savedTab && user._id === loggedInUser._id ? postsIconOutline : postsIconFill} posts</span>
                             {user._id === loggedInUser._id && (
                                 <span onClick={() => setSavedTab(true)} className={`${savedTab ? 'border-t border-black' : 'text-gray-400'} py-3 cursor-pointer flex items-center text-[13px] uppercase gap-3 tracking-[1px] font-medium`}>
                                     {savedTab ? savedIconFill : savedIconOutline} saved</span>
@@ -175,7 +205,7 @@ const Profile = () => {
                         </div>
 
                         {/* posts grid data */}
-                        {savedTab ?
+                        {(savedTab && user._id === loggedInUser._id) ?
                             <PostContainer posts={user?.saved} id={"saved"} /> :
                             user?.posts?.length > 0 ?
                                 <PostContainer posts={user?.posts} id={"posts"} /> :

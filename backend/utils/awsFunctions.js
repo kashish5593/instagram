@@ -33,6 +33,25 @@ const postS3Config = multerS3({
     }
 });
 
+const storyS3Config = multerS3({
+    s3: s3Config,
+    bucket: process.env.AWS_BUCKET_NAME,
+    metadata: function (req, file, cb) {
+        cb(null, { fieldName: file.fieldname });
+    },
+    key: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+        cb(null, "stories/" + file.fieldname + '_' + uniqueSuffix + path.extname(file.originalname))
+    }
+});
+
+exports.uploadStory = multer({
+    storage: storyS3Config,
+    limits: {
+        fileSize: 1024 * 1024 * 5
+    }
+});
+
 exports.uploadAvatar = multer({
     storage: avatarS3Config,
     limits: {

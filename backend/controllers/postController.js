@@ -231,3 +231,32 @@ exports.allPosts = catchAsync(async (req, res, next) => {
         posts
     });
 });
+
+// Explore Posts -- posts from everyone else, newest first, paginated
+exports.explorePosts = catchAsync(async (req, res, next) => {
+
+    const perPage = 12;
+    const currentPage = Number(req.query.page) || 1;
+
+    const filter = { postedBy: { $ne: req.user._id } };
+
+    const totalPosts = await Post.countDocuments(filter);
+
+    const posts = await Post.find(filter)
+        .populate("postedBy")
+        .populate({
+            path: 'comments',
+            populate: {
+                path: 'user'
+            }
+        })
+        .sort({ createdAt: -1 })
+        .skip(perPage * (currentPage - 1))
+        .limit(perPage);
+
+    return res.status(200).json({
+        success: true,
+        posts,
+        totalPosts,
+    });
+});

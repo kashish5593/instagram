@@ -7,6 +7,26 @@ const sendEmail = require('../utils/sendEmail');
 const crypto = require('crypto');
 const { deleteFile } = require('../utils/awsFunctions');
 
+// record a login (keep the last 10 entries)
+const recordLogin = async (userId, req) => {
+    try {
+        await User.updateOne({ _id: userId }, {
+            $push: {
+                loginActivity: {
+                    $each: [{
+                        ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || "Unknown",
+                        device: req.headers['user-agent'] || "Unknown device",
+                        date: new Date(),
+                    }],
+                    $slice: -10,
+                }
+            }
+        });
+    } catch (err) {
+        // login history must never block a login
+    }
+}
+
 // Signup User
 exports.signupUser = catchAsync(async (req, res, next) => {
 
@@ -30,6 +50,7 @@ exports.signupUser = catchAsync(async (req, res, next) => {
         avatar: req.file.location
     })
 
+    await recordLogin(newUser._id, req);
     sendCookie(newUser, 201, res);
 });
 
@@ -52,6 +73,7 @@ exports.loginUser = catchAsync(async (req, res, next) => {
         return next(new ErrorHandler("Password doesn't match", 401));
     }
 
+    await recordLogin(user._id, req);
     sendCookie(user, 201, res);
 });
 
@@ -114,6 +136,16 @@ exports.getUserDetails = catchAsync(async (req, res, next) => {
             path: 'postedBy'
         }
     })
+
+    // saved posts are private, only the owner gets them
+    if (user && user._id.toString() !== req.user._id.toString()) {
+        const publicUser = user.toObject();
+        publicUser.saved = [];
+        return res.status(200).json({
+            success: true,
+            user: publicUser,
+        });
+    }
 
     res.status(200).json({
         success: true,
@@ -399,3 +431,92 @@ exports.searchUsers = catchAsync(async (req, res, next) => {
 //         });
 //     }
 // });
+
+// Activity Feed -- likes, comments and new followers on my posts
+exports.getActivity = catchAsync(async (req, res, next) => {
+
+    const me = await User.findById(req.user._id).populate("followers", "username name avatar");
+    const settings = me.notificationSettings || {};
+
+    const posts = await Post.find({ postedBy: me._id })
+        .populate("likes", "username name avatar")
+        .populate("comments.user", "username name avatar");
+
+    const activity = [];
+    const myId = me._id.toString();
+
+    posts.forEach((post) => {
+        if (settings.likes !== false) {
+            post.likes.forEach((u) => {
+                if (u && u._id.toString() !== myId) {
+                    activity.push({
+                        type: "like",
+                        user: u,
+                        post: { _id: post._id, image: post.image },
+                        createdAt: post.createdAt,
+                    });
+                }
+            });
+        }
+        if (settings.comments !== false) {
+            post.comments.forEach((c) => {
+                if (c.user && c.user._id.toString() !== myId) {
+                    activity.push({
+                        type: "comment",
+                        user: c.user,
+                        comment: c.comment,
+                        post: { _id: post._id, image: post.image },
+                        // comment ids carry their creation time
+                        createdAt: c._id.getTimestamp(),
+                    });
+                }
+            });
+        }
+    });
+
+    if (settings.follows !== false) {
+        me.followers.forEach((u) => {
+            activity.push({
+                type: "follow",
+                user: u,
+                createdAt: u._id.getTimestamp(),
+            });
+        });
+    }
+
+    activity.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.status(200).json({
+        success: true,
+        activity: activity.slice(0, 40),
+    });
+});
+
+// Update Notification Settings
+exports.updateNotificationSettings = catchAsync(async (req, res, next) => {
+
+    const { likes, comments, follows } = req.body;
+
+    const update = {};
+    if (typeof likes === "boolean") update["notificationSettings.likes"] = likes;
+    if (typeof comments === "boolean") update["notificationSettings.comments"] = comments;
+    if (typeof follows === "boolean") update["notificationSettings.follows"] = follows;
+
+    const user = await User.findByIdAndUpdate(req.user._id, { $set: update }, { new: true });
+
+    res.status(200).json({
+        success: true,
+        user,
+    });
+});
+
+// Login Activity
+exports.getLoginActivity = catchAsync(async (req, res, next) => {
+
+    const user = await User.findById(req.user._id).select("+loginActivity");
+
+    res.status(200).json({
+        success: true,
+        activity: [...(user.loginActivity || [])].reverse(),
+    });
+});
